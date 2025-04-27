@@ -70,6 +70,43 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
         logging.info("Admin user created")
+    from models import Course, Lesson
+
+    # Add sample courses if not exists
+    if Course.query.count() == 0:
+        course1 = Course(
+            title='Python Basics',
+            description='Learn the basics of Python programming.',
+            difficulty='Beginner',
+            image_url='https://via.placeholder.com/300x200.png?text=Python+Basics'
+        )
+        course2 = Course(
+            title='Flask for Beginners',
+            description='Build web apps using Flask.',
+            difficulty='Intermediate',
+            image_url='https://via.placeholder.com/300x200.png?text=Flask+for+Beginners'
+        )
+
+        db.session.add_all([course1, course2])
+        db.session.commit()
+
+        # Add some lessons
+        lesson1 = Lesson(
+            course_id=course1.id,
+            title='Introduction to Python',
+            content='Python is a high-level, interpreted language...',
+            order=1
+        )
+        lesson2 = Lesson(
+            course_id=course2.id,
+            title='Setting up Flask',
+            content='Flask is a lightweight WSGI web application framework...',
+            order=1
+        )
+        db.session.add_all([lesson1, lesson2])
+        db.session.commit()
+        logging.info("Sample courses and lessons created")
+
 
 # User loader callback for Flask-Login
 @login_manager.user_loader
