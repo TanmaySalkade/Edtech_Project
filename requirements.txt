@@ -1,2 +1,8 @@
-flask
-gunicorn
+Flask
+Flask-SQLAlchemy
+SQLAlchemy
+Flask-Login
+Flask-WTF
+Werkzeug
+sendgrid
+WTForms
