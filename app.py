@@ -70,6 +70,19 @@ with app.app_context():
         db.session.add(admin)
         db.session.commit()
         logging.info("Admin user created")
+    dummy_user = User.query.filter_by(username='dummy').first()
+    if not dummy_user:
+        dummy_user = User(
+            username='dummy',
+            email='dummy@example.com',
+            password_hash=generate_password_hash('password123'),
+            is_admin=False,
+            xp=0,
+            level=1
+        )
+        db.session.add(dummy_user)
+        db.session.commit()
+        logging.info("Dummy user created")
     from models import Course, Lesson
 
     # Add sample courses if not exists
@@ -109,7 +122,15 @@ with app.app_context():
 
 
 # User loader callback for Flask-Login
+from models import User
 @login_manager.user_loader
 def load_user(user_id):
-    from models import User
     return User.query.get(int(user_id))
+from flask_login import login_user, current_user
+
+@app.before_request
+def auto_login():
+    if not current_user.is_authenticated:
+        dummy_user = User.query.filter_by(username='dummy').first()
+        if dummy_user:
+            login_user(dummy_user)
