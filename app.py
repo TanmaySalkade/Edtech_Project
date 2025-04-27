@@ -134,3 +134,5 @@ def auto_login():
         dummy_user = User.query.filter_by(username='dummy').first()
         if dummy_user:
             login_user(dummy_user)
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
