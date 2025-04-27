@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ lesson.title }} - Learning Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Course Navigation -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('courses') }}">Courses</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('course_detail', course_id=lesson.course.id) }}">{{ lesson.course.title }}</a></li>
+            <li class="breadcrumb-item active">Lesson {{ lesson.order }}: {{ lesson.title }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Lesson Content -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h1 class="mb-3">{{ lesson.title }}</h1>
+                    
+                    {% if lesson.youtube_url %}
+                    <div class="video-container mb-4">
+                        {% set video_id = lesson.youtube_url.split('/')[-1].split('v=')[-1].split('&')[0] %}
+                        <iframe 
+                            id="lesson-video"
+                            data-video-id="{{ video_id }}"
+                            src="https://www.youtube.com/embed/{{ video_id }}?enablejsapi=1" 
+                            title="{{ lesson.title }}" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="lesson-description mb-4">
+                        <h4>Description</h4>
+                        <p>{{ lesson.description }}</p>
+                    </div>
+                    
+                    {% if lesson.content %}
+                    <div class="lesson-content">
+                        <h4>Content</h4>
+                        {{ lesson.content|safe }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-4 d-flex justify-content-between">
+                        {% if prev_lesson %}
+                        <a href="{{ url_for('lesson', lesson_id=prev_lesson.id) }}" class="btn btn-outline-primary">
+                            <i class="fas fa-chevron-left me-1"></i> Previous Lesson
+                        </a>
+                        {% else %}
+                        <div></div>
+                        {% endif %}
+                        
+                        <button class="btn btn-primary complete-lesson-btn {% if lesson_completed %}btn-success disabled{% endif %}" 
+                                data-lesson-id="{{ lesson.id }}" 
+                                {% if lesson_completed %}disabled{% endif %}>
+                            {% if lesson_completed %}
+                            Completed <i class="fas fa-check ms-1"></i>
+                            {% else %}
+                            Mark as Complete <i class="fas fa-check ms-1"></i>
+                            {% endif %}
+                        </button>
+                        
+                        {% if next_lesson %}
+                        <a href="{{ url_for('lesson', lesson_id=next_lesson.id) }}" class="btn btn-outline-primary">
+                            Next Lesson <i class="fas fa-chevron-right ms-1"></i>
+                        </a>
+                        {% else %}
+                        <div></div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Course Progress Sidebar -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Course Progress</h5>
+                </div>
+                <div class="card-body">
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: {{ user_progress.progress_percentage }}%" 
+                             aria-valuenow="{{ user_progress.progress_percentage }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <p class="text-center mb-3">{{ user_progress.progress_percentage|round|int }}% Complete</p>
+                    
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="badge bg-info">{{ lesson.xp_reward }} XP Reward</span>
+                        <span class="badge bg-primary">Lesson {{ lesson.order }} of {{ lesson.course.lessons|length }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lesson List -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Course Content</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for course_lesson in lesson.course.lessons %}
+                    {% set is_completed = false %}
+                    {% for completion in course_lesson.completed_by %}
+                        {% if completion.user_id == current_user.id %}
+                            {% set is_completed = true %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <a href="{{ url_for('lesson', lesson_id=course_lesson.id) }}" 
+                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center
+                              {% if course_lesson.id == lesson.id %}active{% endif %}
+                              {% if is_completed %}text-success{% endif %}">
+                        <div>
+                            <strong>{{ course_lesson.order }}. {{ course_lesson.title }}</strong>
+                        </div>
+                        {% if is_completed %}
+                        <i class="fas fa-check-circle text-success"></i>
+                        {% elif course_lesson.id == lesson.id %}
+                        <i class="fas fa-play-circle"></i>
+                        {% endif %}
+                    </a>
+                    {% endfor %}
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ url_for('course_detail', course_id=lesson.course.id) }}" class="btn btn-outline-primary w-100">
+                        Back to Course
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="lesson-complete-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="fas fa-check-circle text-success me-2"></i>
+            <strong class="me-auto">Video Completed</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            Great job watching the video! Click "Mark as Complete" to earn XP and track your progress.
+        </div>
+    </div>
+</div>
+
+<!-- Modal for lesson completion -->
+<div class="modal fade" id="lesson-completion-modal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Lesson Completed!</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+                    <h4>Great job!</h4>
+                    <p>You've earned <span id="xp-gained" class="fw-bold">0</span> XP!</p>
+                </div>
+                
+                <div id="level-up-alert" class="alert alert-primary d-none">
+                    <i class="fas fa-level-up-alt me-2"></i>
+                    <strong>Level Up!</strong> You've reached level <span id="current-level">1</span>!
+                </div>
+                
+                <div id="reward-alert" class="alert alert-warning d-none">
+                    <i class="fas fa-gift me-2"></i>
+                    <strong>Reward!</strong> You've earned: <span id="reward-name">Reward</span>
+                </div>
+                
+                <div id="course-completed-alert" class="alert alert-success d-none">
+                    <i class="fas fa-trophy me-2"></i>
+                    <strong>Course Completed!</strong> You've finished the entire course!
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                {% if next_lesson %}
+                <a href="{{ url_for('lesson', lesson_id=next_lesson.id) }}" id="next-lesson-btn" class="btn btn-primary">Next Lesson</a>
+                {% else %}
+                <a href="{{ url_for('course_detail', course_id=lesson.course.id) }}" class="btn btn-primary">Back to Course</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confetti canvas for celebrations -->
+<canvas id="confetti-canvas" style="display: none;"></canvas>
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Lessons - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-lg-2 mb-4">
+            <!-- Admin Sidebar -->
+            <div class="list-group shadow-sm">
+                <a href="{{ url_for('admin_index') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                </a>
+                <a href="{{ url_for('admin_courses') }}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-book me-2"></i> Courses
+                </a>
+                <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-users me-2"></i> Users
+                </a>
+            </div>
+        </div>
+        
+        <div class="col-lg-10">
+            <nav aria-label="breadcrumb" class="mb-4">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin_courses') }}">Courses</a></li>
+                    <li class="breadcrumb-item active">{{ course.title }} - Lessons</li>
+                </ol>
+            </nav>
+            
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>{% if editing %}Edit Lesson{% else %}Manage Lessons{% endif %}</h1>
+                <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#lessonFormCollapse" aria-expanded="false" aria-controls="lessonFormCollapse">
+                    {% if editing %}
+                    <i class="fas fa-edit me-1"></i> Edit Lesson
+                    {% else %}
+                    <i class="fas fa-plus me-1"></i> Add New Lesson
+                    {% endif %}
+                </button>
+            </div>
+            
+            <!-- Lesson Form -->
+            <div class="collapse {% if editing or form.errors %}show{% endif %} mb-4" id="lessonFormCollapse">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0">{% if editing %}Edit Lesson: {{ editing.title }}{% else %}Add New Lesson{% endif %}</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{% if editing %}{{ url_for('admin_edit_lesson', lesson_id=editing.id) }}{% else %}{{ url_for('admin_lessons', course_id=course.id) }}{% endif %}">
+                            {{ form.hidden_tag() }}
+                            {{ form.course_id() }}
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-8">
+                                    <label for="title" class="form-label">Lesson Title <span class="text-danger">*</span></label>
+                                    {{ form.title(class="form-control", placeholder="Enter lesson title") }}
+                                    {% for error in form.title.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="order" class="form-label">Order <span class="text-danger">*</span></label>
+                                    {{ form.order(class="form-control", type="number", min=1) }}
+                                    {% for error in form.order.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="xp_reward" class="form-label">XP Reward <span class="text-danger">*</span></label>
+                                    {{ form.xp_reward(class="form-control", type="number", min=1) }}
+                                    {% for error in form.xp_reward.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Short Description <span class="text-danger">*</span></label>
+                                {{ form.description(class="form-control", rows=2, placeholder="Enter a brief description") }}
+                                {% for error in form.description.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="youtube_url" class="form-label">YouTube Video URL</label>
+                                {{ form.youtube_url(class="form-control", placeholder="https://www.youtube.com/watch?v=...") }}
+                                <div class="form-text">Enter the full YouTube URL for the lesson video</div>
+                                {% for error in form.youtube_url.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="content" class="form-label">Lesson Content</label>
+                                {{ form.content(class="form-control", rows=10, placeholder="Enter lesson content (markdown supported)") }}
+                                <div class="form-text">You can use markdown formatting for rich text content</div>
+                                {% for error in form.content.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="d-flex justify-content-between">
+                                {% if editing %}
+                                <a href="{{ url_for('admin_lessons', course_id=course.id) }}" class="btn btn-outline-secondary">Cancel</a>
+                                {% else %}
+                                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#lessonFormCollapse">
+                                    Cancel
+                                </button>
+                                {% endif %}
+                                {{ form.submit(class="btn btn-primary") }}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Course Info Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Course Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4>{{ course.title }}</h4>
+                            <p class="mb-2">{{ course.description|truncate(200) }}</p>
+                            <div class="d-flex gap-2">
+                                <span class="badge bg-primary">{{ course.difficulty }}</span>
+                                <span class="badge bg-secondary">{{ lessons|length }} lessons</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-md-end">
+                            <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline-primary" target="_blank">
+                                <i class="fas fa-eye me-1"></i> View Course
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Lessons List -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">Course Lessons</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if lessons %}
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead>
+                                <tr>
+                                    <th width="5%">Order</th>
+                                    <th width="40%">Title</th>
+                                    <th width="15%">XP Reward</th>
+                                    <th width="15%">Video</th>
+                                    <th width="25%">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="sortable-lessons">
+                                {% for lesson in lessons %}
+                                <tr>
+                                    <td>{{ lesson.order }}</td>
+                                    <td>
+                                        <a href="{{ url_for('lesson', lesson_id=lesson.id) }}" target="_blank">
+                                            {{ lesson.title }}
+                                        </a>
+                                        <div class="small text-muted">{{ lesson.description|truncate(60) }}</div>
+                                    </td>
+                                    <td>{{ lesson.xp_reward }} XP</td>
+                                    <td>
+                                        {% if lesson.youtube_url %}
+                                        <i class="fas fa-video text-success"></i> Available
+                                        {% else %}
+                                        <i class="fas fa-times text-danger"></i> No video
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('admin_edit_lesson', lesson_id=lesson.id) }}" class="btn btn-outline-primary">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                            <form action="{{ url_for('admin_delete_lesson', lesson_id=lesson.id) }}" method="POST" class="d-inline"
+                                                  onsubmit="return confirm('Are you sure you want to delete this lesson? This will also remove all completion records.')">
+                                                <button type="submit" class="btn btn-outline-danger">
+                                                    <i class="fas fa-trash-alt"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center p-4">
+                        <i class="fas fa-book-open fa-3x text-muted mb-3"></i>
+                        <h5>No lessons available for this course</h5>
+                        <p>Add your first lesson by clicking the "Add New Lesson" button above.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

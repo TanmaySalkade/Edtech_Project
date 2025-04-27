@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}Courses - Learning Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>All Courses</h1>
+        
+        <!-- Filter/Search controls could be added here -->
+        <div class="d-flex">
+            <div class="dropdown me-2">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Filter
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                    <li><a class="dropdown-item" href="#">All Courses</a></li>
+                    <li><a class="dropdown-item" href="#">Beginner</a></li>
+                    <li><a class="dropdown-item" href="#">Intermediate</a></li>
+                    <li><a class="dropdown-item" href="#">Advanced</a></li>
+                </ul>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Sort
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+                    <li><a class="dropdown-item" href="#">Newest First</a></li>
+                    <li><a class="dropdown-item" href="#">Oldest First</a></li>
+                    <li><a class="dropdown-item" href="#">Top Rated</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    {% if courses %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for course in courses %}
+        <div class="col">
+            <div class="card h-100 course-card">
+                {% if course.image_url %}
+                <div class="card-img-top bg-dark text-center py-4">
+                    <i class="fas fa-graduation-cap fa-4x"></i>
+                </div>
+                {% else %}
+                <div class="card-img-top bg-dark text-center py-4">
+                    <i class="fas fa-graduation-cap fa-4x"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title">{{ course.title }}</h5>
+                        <span class="badge bg-primary">{{ course.difficulty }}</span>
+                    </div>
+                    <p class="card-text">{{ course.description|truncate(100) }}</p>
+                    
+                    <!-- Course stats -->
+                    <div class="d-flex justify-content-between text-muted small mb-3">
+                        <span><i class="fas fa-book-open me-1"></i> {{ course.lessons|length }} lessons</span>
+                        <span><i class="fas fa-star me-1"></i> {{ course.average_rating()|round(1) }}</span>
+                    </div>
+                    
+                    <!-- Progress bar if user is logged in and has started the course -->
+                    {% if current_user.is_authenticated %}
+                        {% set progress = none %}
+                        {% for prog in current_user.course_progress %}
+                            {% if prog.course_id == course.id %}
+                                {% set progress = prog %}
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if progress %}
+                        <div class="progress mb-2" style="height: 8px;">
+                            <div class="progress-bar {% if progress.completed %}bg-success{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: {{ progress.progress_percentage }}%" 
+                                 aria-valuenow="{{ progress.progress_percentage }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100"></div>
+                        </div>
+                        <p class="small text-muted mb-0">
+                            {% if progress.completed %}
+                            Completed
+                            {% else %}
+                            {{ progress.progress_percentage|round|int }}% Complete
+                            {% endif %}
+                        </p>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-primary w-100">
+                        {% if progress and not progress.completed %}
+                        Continue Learning
+                        {% elif progress and progress.completed %}
+                        Review Course
+                        {% else %}
+                        Start Course
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-book fa-4x text-muted mb-3"></i>
+        <h3>No courses available yet</h3>
+        <p>Check back soon for exciting learning content!</p>
+        
+        {% if current_user.is_authenticated and current_user.is_admin %}
+        <div class="mt-4">
+            <a href="{{ url_for('admin_courses') }}" class="btn btn-primary">Add Courses</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

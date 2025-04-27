@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Achievement Unlocked!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f9fc;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #eaeaea;
+        }
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4e73df;
+        }
+        .content {
+            padding: 20px 0;
+        }
+        .achievement-container {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
+        }
+        .achievement-badge {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+        .achievement-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4e73df;
+            margin-bottom: 10px;
+        }
+        .xp-badge {
+            display: inline-block;
+            background-color: #1cc88a;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: #4e73df;
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .share-button {
+            display: inline-block;
+            background-color: #2e59d9;
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            padding: 20px 0;
+            border-top: 1px solid #eaeaea;
+        }
+        .stats {
+            background-color: #f8f9fc;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eaeaea;
+        }
+        .stat-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Learning Platform</div>
+        </div>
+        <div class="content">
+            <h1>Congratulations, {{ username }}!</h1>
+            <p>You've unlocked a new achievement on your learning journey!</p>
+            
+            <div class="achievement-container">
+                <div class="achievement-badge">🏆</div>
+                <div class="achievement-title">{{ achievement.name }}</div>
+                <p>{{ achievement.description }}</p>
+                <div class="xp-badge">+{{ achievement.xp_reward }} XP</div>
+                
+                <a href="{{ url_for('profile', _external=True) }}" class="share-button">
+                    Share Achievement
+                </a>
+            </div>
+            
+            <div class="stats">
+                <h3>Your Learning Stats</h3>
+                <div class="stat-item">
+                    <span>Current Level</span>
+                    <strong>Level {{ current_user.level }}</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Total XP</span>
+                    <strong>{{ current_user.xp }} XP</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Achievements</span>
+                    <strong>{{ achievements_count }} Unlocked</strong>
+                </div>
+                <div class="stat-item">
+                    <span>Current Streak</span>
+                    <strong>{{ current_user.streak_days }} Days</strong>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{{ url_for('dashboard', _external=True) }}" class="button">View Your Dashboard</a>
+            </div>
+            
+            <p>Keep up the great work!</p>
+            
+            <p>Happy learning,<br>
+            The Learning Platform Team</p>
+        </div>
+        <div class="footer">
+            <p>© 2023 Learning Platform. All rights reserved.</p>
+            <p>You received this email because you enabled achievement notifications. <a href="{{ url_for('profile', _external=True) }}">Manage email preferences</a>.</p>
+        </div>
+    </div>
+</body>
+</html>

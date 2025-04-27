@@ -1,0 +1,218 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Learning Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">My Learning Dashboard</h1>
+    
+    <!-- User Stats Overview -->
+    <div class="row g-4 mb-4">
+        <!-- Level & XP Card -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-3">Level & XP</h5>
+                    <div class="xp-chart-container mb-3">
+                        <canvas id="xp-chart"></canvas>
+                        <div id="xp-chart-text" class="xp-chart-text"></div>
+                    </div>
+                    <h2 class="mb-0">Level {{ current_user.level }}</h2>
+                    <p class="text-muted">{{ current_user.xp }} XP Total</p>
+                    <div class="xp-progress-container">
+                        <div class="xp-progress-bar" style="width: {{ level_progress.progress_percentage }}%"></div>
+                    </div>
+                    <p class="small text-muted">
+                        {{ level_progress.xp_for_current_level }} / {{ level_progress.xp_needed_for_next_level }} XP to Level {{ current_user.level + 1 }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Streak Card -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title mb-3">Learning Streak</h5>
+                    <div class="d-flex justify-content-center align-items-center mb-3">
+                        <div class="streak-badge">
+                            <i class="fas fa-fire"></i> {{ current_user.streak_days }} days
+                        </div>
+                    </div>
+                    <div id="streak-timer" data-last-login="{{ current_user.last_login.isoformat() }}" class="alert alert-info">
+                        Calculating streak timer...
+                    </div>
+                    <p class="text-muted">Keep your streak going by logging in daily!</p>
+                    
+                    {% if current_user.streak_days >= 3 %}
+                    <div class="achievement-unlocked mt-3">
+                        <div class="badge-achievement mb-2">
+                            <i class="fas fa-fire"></i>
+                        </div>
+                        <p class="mb-0">{{ current_user.streak_days }} Day Streak!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Achievements -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title mb-3">Recent Achievements</h5>
+                    {% if recent_achievements %}
+                    <ul class="list-group list-group-flush">
+                        {% for user_achievement in recent_achievements %}
+                        <li class="list-group-item bg-transparent d-flex align-items-center">
+                            <div class="badge-achievement {{ user_achievement.achievement.badge_image if user_achievement.achievement.badge_image else 'common' }} me-3">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0">{{ user_achievement.achievement.name }}</h6>
+                                <small class="text-muted">{{ user_achievement.achievement.description }}</small>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                        <p>Complete courses and maintain streaks to earn achievements!</p>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ url_for('profile') }}" class="btn btn-outline-primary w-100">View All Achievements</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Courses In Progress -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent">
+            <h2 class="h5 mb-0">Courses In Progress</h2>
+        </div>
+        <div class="card-body">
+            {% if user_progress %}
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for progress in user_progress %}
+                <div class="col">
+                    <div class="card h-100 course-card">
+                        <div class="card-body">
+                            <h5 class="card-title mb-2">{{ progress.course.title }}</h5>
+                            <div class="d-flex align-items-center mb-3">
+                                <span class="badge bg-primary me-2">{{ progress.course.difficulty }}</span>
+                                <span class="text-muted small">Last accessed: {{ progress.last_accessed.strftime('%b %d, %Y') }}</span>
+                            </div>
+                            <div class="mb-3">
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ progress.progress_percentage }}%" 
+                                         aria-valuenow="{{ progress.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                                        {{ progress.progress_percentage|round|int }}%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0">
+                            <a href="{{ url_for('course_detail', course_id=progress.course.id) }}" class="btn btn-primary w-100">
+                                Continue Learning
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center p-5">
+                <i class="fas fa-book-open fa-4x text-muted mb-3"></i>
+                <h5>You haven't started any courses yet</h5>
+                <p class="mb-4">Explore our courses and start your learning journey</p>
+                <a href="{{ url_for('courses') }}" class="btn btn-primary">Browse Courses</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Completed Courses -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent">
+            <h2 class="h5 mb-0">Completed Courses</h2>
+        </div>
+        <div class="card-body">
+            {% if completed_courses %}
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for progress in completed_courses %}
+                <div class="col">
+                    <div class="card h-100 course-card">
+                        <div class="card-body">
+                            <div class="position-absolute top-0 end-0 p-2">
+                                <i class="fas fa-check-circle text-success fa-2x"></i>
+                            </div>
+                            <h5 class="card-title mb-2">{{ progress.course.title }}</h5>
+                            <div class="d-flex align-items-center mb-3">
+                                <span class="badge bg-primary me-2">{{ progress.course.difficulty }}</span>
+                                <span class="text-muted small">Completed: {{ progress.completed_at.strftime('%b %d, %Y') }}</span>
+                            </div>
+                            <div class="mb-3">
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 100%" 
+                                         aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                                        100%
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-0">
+                            <a href="{{ url_for('course_detail', course_id=progress.course.id) }}" class="btn btn-outline-success w-100">
+                                Review Course
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center p-4">
+                <p class="text-muted">You haven't completed any courses yet. Keep learning!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Recommended Courses -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent">
+            <h2 class="h5 mb-0">Recommended For You</h2>
+        </div>
+        <div class="card-body">
+            <div class="text-center py-4">
+                <a href="{{ url_for('courses') }}" class="btn btn-primary">Browse All Courses</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Create XP progress chart
+    createXPChart('xp-chart', 
+                 {{ current_user.xp }}, 
+                 {{ level_progress.next_level_xp }}, 
+                 {{ level_progress.next_level_xp - level_progress.xp_needed_for_next_level }});
+    
+    // Create mock streak data for demonstration
+    const streakData = {
+        {% for i in range(30) %}
+        '2023-01-{{ i+1 }}': {{ 1 if i % 3 != 0 else 0 }}{{ ',' if i < 29 else '' }}
+        {% endfor %}
+    };
+    
+    // Uncomment to enable streak chart if needed
+    // createStreakChart('streak-chart', streakData);
+});
+</script>
+{% endblock %}

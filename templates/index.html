@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Learning Platform - Learn, Grow, Achieve{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Hero Section -->
+    <div class="px-4 py-5 my-5 text-center">
+        <h1 class="display-5 fw-bold text-body-emphasis">Learn, Track Progress, Earn Rewards</h1>
+        <div class="col-lg-7 mx-auto">
+            <p class="lead mb-4">
+                Elevate your skills with our interactive learning platform. Track your progress, maintain daily streaks, and earn rewards as you learn.
+            </p>
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg px-4 gap-3">My Dashboard</a>
+                <a href="{{ url_for('courses') }}" class="btn btn-outline-secondary btn-lg px-4">Browse Courses</a>
+                {% else %}
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 gap-3">Get Started</a>
+                <a href="{{ url_for('courses') }}" class="btn btn-outline-secondary btn-lg px-4">Browse Courses</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row g-4 py-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-primary bg-gradient text-white fs-2 mb-3 p-2 rounded-circle" style="width: 60px; height: 60px;">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h3 class="card-title">XP & Leveling</h3>
+                    <p class="card-text">Earn experience points as you complete lessons and courses. Level up your profile and unlock achievements.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-warning bg-gradient text-dark fs-2 mb-3 p-2 rounded-circle" style="width: 60px; height: 60px;">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <h3 class="card-title">Daily Streaks</h3>
+                    <p class="card-text">Maintain your learning streak by logging in daily. Earn special rewards for consistency and milestone achievements.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon d-inline-flex align-items-center justify-content-center bg-success bg-gradient text-white fs-2 mb-3 p-2 rounded-circle" style="width: 60px; height: 60px;">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <h3 class="card-title">Random Rewards</h3>
+                    <p class="card-text">Complete lessons to earn random rewards of varying rarity. Collect badges and share your achievements.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Courses -->
+    <div class="py-5">
+        <h2 class="text-center mb-4">Featured Courses</h2>
+        {% if featured_courses %}
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for course in featured_courses %}
+            <div class="col">
+                <div class="card h-100 course-card">
+                    {% if course.image_url %}
+                    <div class="card-img-top bg-dark text-center py-4">
+                        <i class="fas fa-graduation-cap fa-4x"></i>
+                    </div>
+                    {% else %}
+                    <div class="card-img-top bg-dark text-center py-4">
+                        <i class="fas fa-graduation-cap fa-4x"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title">{{ course.title }}</h5>
+                            <span class="badge bg-primary">{{ course.difficulty }}</span>
+                        </div>
+                        <p class="card-text">{{ course.description|truncate(100) }}</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <a href="{{ url_for('course_detail', course_id=course.id) }}" class="btn btn-outline-primary w-100">View Course</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center p-5 bg-dark rounded-3">
+            <h3>No courses available yet</h3>
+            <p>Check back soon for exciting learning content!</p>
+        </div>
+        {% endif %}
+        <div class="text-center mt-4">
+            <a href="{{ url_for('courses') }}" class="btn btn-primary">View All Courses</a>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="py-5">
+        <h2 class="text-center mb-4">How It Works</h2>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="bg-primary rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <h3 class="text-white mb-0">1</h3>
+                    </div>
+                    <h4>Create Account</h4>
+                    <p>Sign up for free and set up your learning profile.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="bg-primary rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <h3 class="text-white mb-0">2</h3>
+                    </div>
+                    <h4>Choose Courses</h4>
+                    <p>Browse through our library of curated courses and pick what interests you.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="bg-primary rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <h3 class="text-white mb-0">3</h3>
+                    </div>
+                    <h4>Complete Lessons</h4>
+                    <p>Watch video lessons and complete them to earn XP and rewards.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="text-center">
+                    <div class="bg-primary rounded-circle mx-auto d-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <h3 class="text-white mb-0">4</h3>
+                    </div>
+                    <h4>Track Progress</h4>
+                    <p>Monitor your learning journey, earn achievements, and level up.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Testimonials/Stats -->
+    <div class="py-5 bg-dark rounded-3 p-4">
+        <h2 class="text-center mb-4">Learning Statistics</h2>
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="display-4 fw-bold mb-0">500+</div>
+                <p class="lead">Video Lessons</p>
+            </div>
+            <div class="col-md-4">
+                <div class="display-4 fw-bold mb-0">10k+</div>
+                <p class="lead">Active Learners</p>
+            </div>
+            <div class="col-md-4">
+                <div class="display-4 fw-bold mb-0">50+</div>
+                <p class="lead">Achievements to Earn</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="p-5 my-5 bg-primary bg-gradient rounded-3 text-white text-center">
+        <div class="container py-4">
+            <h2 class="display-5 fw-bold text-white">Ready to start learning?</h2>
+            <p class="col-md-8 mx-auto fs-4 mb-4">
+                Join thousands of learners who are leveling up their skills and knowledge. Start your learning journey today!
+            </p>
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('courses') }}" class="btn btn-light btn-lg px-4">Browse Courses</a>
+            {% else %}
+            <a href="{{ url_for('register') }}" class="btn btn-light btn-lg px-4">Sign Up Now</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

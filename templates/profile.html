@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile - Learning Platform{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-4 mb-4 mb-lg-0">
+            <!-- Profile Info Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <div class="avatar bg-primary text-white rounded-circle mx-auto mb-3" style="width: 100px; height: 100px; line-height: 100px; font-size: 40px;">
+                            {{ user.username[0]|upper }}
+                        </div>
+                        <h3>{{ user.username }}</h3>
+                        <p class="text-muted">Joined {{ user.created_at.strftime('%b %d, %Y') }}</p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-center mb-3">
+                        <div class="level-badge">{{ user.level }}</div>
+                        <div>
+                            <h5 class="mb-0">Level {{ user.level }}</h5>
+                            <p class="text-muted mb-0">{{ user.xp }} XP Total</p>
+                        </div>
+                    </div>
+                    
+                    <div class="xp-progress-container">
+                        <div class="xp-progress-bar" style="width: {{ level_progress.progress_percentage }}%"></div>
+                    </div>
+                    <p class="small text-muted mb-3">
+                        {{ level_progress.xp_for_current_level }} / {{ level_progress.xp_needed_for_next_level }} XP to Level {{ user.level + 1 }}
+                    </p>
+                    
+                    <div class="streak-badge mx-auto mb-3">
+                        <i class="fas fa-fire"></i> {{ user.streak_days }} day streak
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Badges Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h5 class="mb-0">My Badges</h5>
+                </div>
+                <div class="card-body text-center">
+                    {% set badges = user.get_badges() %}
+                    {% if badges %}
+                    <div class="row g-2">
+                        {% for badge in badges %}
+                        <div class="col-4">
+                            <div class="badge-achievement {{ badge.rarity if badge.rarity else 'common' }}" 
+                                 data-bs-toggle="tooltip" title="{{ badge }}">
+                                <i class="fas fa-award"></i>
+                            </div>
+                            <p class="small mt-1">{{ badge }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="py-3">
+                        <i class="fas fa-award fa-3x text-muted mb-3"></i>
+                        <p>Complete courses and maintain streaks to earn badges!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit" type="button" role="tab" aria-controls="edit" aria-selected="true">
+                        Edit Profile
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="achievements-tab" data-bs-toggle="tab" data-bs-target="#achievements" type="button" role="tab" aria-controls="achievements" aria-selected="false">
+                        Achievements
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="progress-tab" data-bs-toggle="tab" data-bs-target="#progress" type="button" role="tab" aria-controls="progress" aria-selected="false">
+                        Learning Progress
+                    </button>
+                </li>
+            </ul>
+            
+            <!-- Tab Content -->
+            <div class="tab-content" id="profileTabsContent">
+                <!-- Edit Profile Tab -->
+                <div class="tab-pane fade show active" id="edit" role="tabpanel" aria-labelledby="edit-tab">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent">
+                            <h5 class="mb-0">Edit Profile</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('profile') }}">
+                                {{ form.hidden_tag() }}
+                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    {{ form.username(class="form-control") }}
+                                    {% for error in form.username.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email Address</label>
+                                    {{ form.email(class="form-control") }}
+                                    {% for error in form.email.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="mb-3 form-check">
+                                    {{ form.email_notifications(class="form-check-input") }}
+                                    <label class="form-check-label" for="email_notifications">
+                                        Receive email notifications
+                                    </label>
+                                </div>
+                                
+                                <hr class="my-4">
+                                <h5>Change Password</h5>
+                                <p class="text-muted small mb-3">Leave blank if you don't want to change your password</p>
+                                
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label">Current Password</label>
+                                    {{ form.current_password(class="form-control") }}
+                                    {% for error in form.current_password.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">New Password</label>
+                                    {{ form.new_password(class="form-control") }}
+                                    {% for error in form.new_password.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="confirm_password" class="form-label">Confirm New Password</label>
+                                    {{ form.confirm_password(class="form-control") }}
+                                    {% for error in form.confirm_password.errors %}
+                                        <div class="text-danger">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                
+                                <div class="d-grid">
+                                    {{ form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Achievements Tab -->
+                <div class="tab-pane fade" id="achievements" role="tabpanel" aria-labelledby="achievements-tab">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent">
+                            <h5 class="mb-0">My Achievements</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if achievements %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Achievement</th>
+                                            <th>Description</th>
+                                            <th>Earned</th>
+                                            <th>XP Reward</th>
+                                            <th>Share</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for achievement in achievements %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="badge-achievement {{ achievement.achievement.badge_image if achievement.achievement.badge_image else 'common' }} me-2">
+                                                        <i class="fas fa-award"></i>
+                                                    </div>
+                                                    {{ achievement.achievement.name }}
+                                                </div>
+                                            </td>
+                                            <td>{{ achievement.achievement.description }}</td>
+                                            <td>{{ achievement.earned_at.strftime('%b %d, %Y') }}</td>
+                                            <td>{{ achievement.achievement.xp_reward }} XP</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary" 
+                                                        onclick="shareAchievement('{{ achievement.achievement.name }}')">
+                                                    <i class="fas fa-share-alt"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-trophy fa-3x text-muted mb-3"></i>
+                                <h5>No achievements yet</h5>
+                                <p>Complete courses and maintain your streak to earn achievements!</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Learning Progress Tab -->
+                <div class="tab-pane fade" id="progress" role="tabpanel" aria-labelledby="progress-tab">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-header bg-transparent">
+                            <h5 class="mb-0">My Learning Progress</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container mb-4">
+                                <canvas id="course-progress-chart"></canvas>
+                            </div>
+                            
+                            <h5 class="mb-3">Course Completion</h5>
+                            {% set user_courses = user.course_progress %}
+                            {% if user_courses %}
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Course</th>
+                                            <th>Progress</th>
+                                            <th>Started</th>
+                                            <th>Last Activity</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for progress in user_courses %}
+                                        <tr>
+                                            <td>
+                                                <a href="{{ url_for('course_detail', course_id=progress.course.id) }}">
+                                                    {{ progress.course.title }}
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar {% if progress.completed %}bg-success{% endif %}" 
+                                                         role="progressbar" 
+                                                         style="width: {{ progress.progress_percentage }}%" 
+                                                         aria-valuenow="{{ progress.progress_percentage }}" 
+                                                         aria-valuemin="0" 
+                                                         aria-valuemax="100"></div>
+                                                </div>
+                                                <span class="small">{{ progress.progress_percentage|round|int }}%</span>
+                                            </td>
+                                            <td>{{ progress.started_at.strftime('%b %d, %Y') }}</td>
+                                            <td>{{ progress.last_accessed.strftime('%b %d, %Y') }}</td>
+                                            <td>
+                                                {% if progress.completed %}
+                                                <span class="badge bg-success">Completed</span>
+                                                {% else %}
+                                                <span class="badge bg-primary">In Progress</span>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4">
+                                <i class="fas fa-book fa-3x text-muted mb-3"></i>
+                                <h5>No courses started yet</h5>
+                                <p>Start exploring our courses to track your progress!</p>
+                                <a href="{{ url_for('courses') }}" class="btn btn-primary mt-2">Browse Courses</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // XP Chart
+    createXPChart('xp-chart', 
+                 {{ current_user.xp }}, 
+                 {{ level_progress.next_level_xp }}, 
+                 {{ level_progress.next_level_xp - level_progress.xp_needed_for_next_level }});
+    
+    // Course Progress Chart
+    {% set user_courses = user.course_progress %}
+    {% if user_courses %}
+    const courseData = [
+        {% for progress in user_courses %}
+        {
+            name: '{{ progress.course.title|truncate(20) }}',
+            progress: {{ progress.progress_percentage }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    createCourseProgressChart('course-progress-chart', courseData);
+    {% endif %}
+});
+</script>
+{% endblock %}
