@@ -4,7 +4,7 @@ from models import Course
 
 @app.route('/')
 def home():
-    return render_template('home.html')
+    return redirect(url_for('courses'))
 
 @app.route('/courses')
 def courses():
