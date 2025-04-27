@@ -19,7 +19,7 @@ db = SQLAlchemy(model_class=Base)
 
 # Create the Flask app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET")
+app.secret_key = 'abc'
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)  # needed for url_for to generate with https
 
 # Set preferred URL scheme to http for Replit environment
